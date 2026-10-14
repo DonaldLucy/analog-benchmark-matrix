@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="38 analog circuit design benchmarks from 2023-2026 compared: entries, design intent, netlist, layout, testbench, natural language, sources, gaps.">
+<title>Analog Benchmark Matrix</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+html, body { margin: 0; }
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+/* Layout: an evidence matrix. Coverage bars first, then a wide table with a pinned name column, then gaps and directions. */
+:root {
+  --bg: #f3f5f6; --surface: #ffffff; --ink: #172029; --muted: #56636f; --line: #d6dde3; --head: #e7edf1;
+  --accent: #1b6582; --ours: #a8541b; --ours-bg: #fbf0e6;
+  --yes: #1d7c47; --part: #a97700; --no: #a2acb5;
+  --display: "IBM Plex Sans Condensed", "Arial Narrow", Arial, sans-serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1519; --surface: #161e24; --ink: #e1e8ed; --muted: #95a4b1; --line: #29343c; --head: #1c262d;
+    --accent: #66b4d0; --ours: #e59c62; --ours-bg: #2a1f17;
+    --yes: #55c588; --part: #e1b43c; --no: #5c6872; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1519; --surface: #161e24; --ink: #e1e8ed; --muted: #95a4b1; --line: #29343c; --head: #1c262d;
+  --accent: #66b4d0; --ours: #e59c62; --ours-bg: #2a1f17;
+  --yes: #55c588; --part: #e1b43c; --no: #5c6872; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1380px; margin: 0 auto; padding-inline: clamp(16px, 3vw, 40px); padding-block: 36px 72px; display: grid; gap: 38px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(28px, 4vw, 42px); line-height: 1.12; margin: 6px 0 14px; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 600; font-size: 24px; margin: 0 0 12px; text-wrap: balance; }
+h3 { font-family: var(--display); font-weight: 600; font-size: 18px; margin: 0 0 8px; text-wrap: balance; }
+p { margin: 0; }
+.lead { max-width: 80ch; color: var(--muted); display: grid; gap: 8px; }
+.lead strong { color: var(--ink); font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 16px; font-size: 13.5px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; flex: none; border: 2px solid var(--no); }
+.dot.l2 { background: var(--yes); border-color: var(--yes); }
+.dot.l1 { background: linear-gradient(90deg, var(--part) 50%, transparent 50%); border-color: var(--part); }
+.dot.l0 { background: transparent; border-color: var(--no); }
+
+.cover { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px 30px; }
+.cov { display: grid; gap: 5px; min-width: 0; }
+.cov-top { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
+.cov-top b { font-weight: 600; }
+.cov-top span { font-family: var(--mono); font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bar { height: 10px; background: var(--head); border-radius: 2px; overflow: hidden; display: flex; }
+.bar i { display: block; height: 100%; }
+.bar .f { background: var(--yes); } .bar .p { background: var(--part); }
+.cov small { color: var(--muted); font-size: 12.5px; }
+.cov small b { color: var(--ours); font-weight: 600; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.seg button { font: inherit; font-size: 13.5px; padding: 6px 12px; border: 0; background: transparent; color: var(--muted); cursor: pointer; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: inherit; font-size: 13px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); cursor: pointer; }
+.chip[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#q { font: inherit; font-size: 14px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); width: 230px; max-width: 100%; }
+.count { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+
+.tablebox { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; font-size: 13.5px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 11px; border-bottom: 1px solid var(--line); }
+thead th { position: sticky; top: 0; z-index: 2; background: var(--head); font-family: var(--display); font-weight: 600; font-size: 13.5px; white-space: nowrap; }
+thead th small { display: block; font-family: var(--body); font-weight: 400; font-size: 11.5px; color: var(--muted); }
+th.name, td.name { position: sticky; left: 0; z-index: 1; background: var(--surface); width: 236px; min-width: 236px; max-width: 236px; border-right: 1px solid var(--line); }
+thead th.name { z-index: 3; background: var(--head); }
+td.name b { display: block; font-weight: 600; font-size: 14px; }
+td.name .venue { display: block; font-family: var(--mono); font-size: 11.5px; color: var(--accent); margin-top: 2px; }
+td.name .title { color: var(--muted); font-size: 12px; line-height: 1.4; margin-top: 4px; }
+.plinks { display: flex; flex-wrap: wrap; gap: 3px 12px; margin-top: 6px; font-size: 12.5px; }
+.plinks a { color: var(--accent); }
+td .cell { display: flex; gap: 7px; align-items: flex-start; }
+td .cell .dot { margin-top: 4px; }
+td .cell span { min-width: 0; }
+td.ic { text-align: center; } td.ic .dot { margin-top: 3px; }
+th.ic { text-align: center; }
+.w-task { width: 160px; } .w-n { width: 165px; } .w-entry { width: 240px; } .w-int { width: 240px; }
+.w-net { width: 220px; } .w-lay { width: 230px; } .w-tb { width: 210px; } .w-nl { width: 200px; }
+.w-use { width: 200px; } .w-prov { width: 230px; } .w-pdk { width: 150px; } .w-open { width: 160px; }
+.w-ps { width: 210px; } .w-pr { width: 170px; }
+tr.ours td { background: var(--ours-bg); }
+tr.ours td.name { background: var(--ours-bg); box-shadow: inset 4px 0 0 var(--ours); }
+tr.ours td.name .venue { color: var(--ours); }
+.num { font-variant-numeric: tabular-nums; }
+.tchip { display: inline-block; font-size: 11.5px; padding: 1px 7px; border-radius: 999px; background: var(--head); color: var(--muted); margin: 0 4px 4px 0; white-space: nowrap; }
+.rowbtn { font: inherit; font-size: 12px; color: var(--accent); background: none; border: 0; padding: 0; margin-top: 6px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+tr.detail td { background: var(--bg); padding: 12px 16px 16px; }
+tr.detail .dgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px 26px; max-width: 1180px; }
+tr.detail .dgrid div { min-width: 0; }
+tr.detail h4 { margin: 0 0 2px; font-size: 11.5px; font-family: var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+tr.detail a { color: var(--accent); overflow-wrap: anywhere; }
+.empty { padding: 28px; color: var(--muted); }
+
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 26px 36px; }
+.cols > section { min-width: 0; }
+ul.tight { margin: 0; padding-left: 1.15em; display: grid; gap: 8px; }
+ul.tight li::marker { color: var(--accent); }
+.panel { border-top: 2px solid var(--ink); padding-top: 14px; }
+.panel.ours { border-top-color: var(--ours); }
+.note { font-size: 13px; color: var(--muted); max-width: 95ch; }
+.screened { columns: 2 340px; column-gap: 34px; font-size: 13.5px; }
+.screened p { break-inside: avoid; margin: 0 0 8px; }
+.screened b { font-weight: 600; }
+.screened span { color: var(--muted); }
+dl.defs { display: grid; grid-template-columns: minmax(130px, 180px) 1fr; gap: 6px 18px; margin: 0; font-size: 14px; }
+dl.defs dt { font-weight: 600; }
+dl.defs dd { margin: 0; color: var(--muted); min-width: 0; }
+@media (max-width: 560px) { dl.defs { grid-template-columns: 1fr; } dl.defs dd { margin-bottom: 6px; } }
+a { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Literature comparison · published 2023 – Oct 2026</div>
+    <h1>Benchmarks for analog circuit design automation</h1>
+    <div class="lead">
+      <p>This page compares <strong>38 published benchmarks and datasets</strong> for analog circuit design with our work (last row, highlighted). It covers every benchmark we found at the <strong>EDA venues</strong> (DAC, ICCAD, DATE, ASP-DAC) and the <strong>ML venues</strong> (NeurIPS, ICML, ICLR), plus widely used or layout-related ones from other venues and workshops.</p>
+      <p>Each row answers the same questions: what one entry contains, whether the goal of the design is written down, and whether there is a netlist, a layout, a simulation setup and natural-language text. It also says where the data came from. Every name links to the paper, and the code too where there is one.</p>
+    </div>
+    <div class="legend">
+      <span><i class="dot l2"></i>Yes</span>
+      <span><i class="dot l1"></i>Partly / limited / not released</span>
+      <span><i class="dot l0"></i>No</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>What the 38 benchmarks cover</h2>
+    <div class="cover" id="cover"></div>
+  </section>
+
+  <section style="display:grid; gap:12px; min-width:0">
+    <h2 style="margin:0">The table</h2>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="View" id="views"></div>
+      <div class="seg" role="group" aria-label="Venue group" id="seg"></div>
+    </div>
+    <div class="controls">
+      <div class="chips" id="chips" aria-label="Task type"></div>
+      <input id="q" type="search" placeholder="Search name, venue, PDK…" aria-label="Search the table">
+      <span class="count" id="count"></span>
+    </div>
+    <div class="tablebox">
+      <table>
+        <thead><tr id="thead"></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <p class="note">In the quick view, hover over a dot for its explanation, or switch to full details. Venues were checked against the official proceedings, conference programs or DOIs. Workshop papers and preprints are labelled as such. Where only an abstract is public, the cells say what could not be verified.</p>
+  </section>
+
+  <div class="cols">
+    <section class="panel">
+      <h2>What earlier work covers</h2>
+      <ul class="tight">
+        <li><b>Topology generation</b> (OCB, LaMAGIC, AnalogGenie, OpenCircuit, DiffCkt, the DATE&nbsp;2024 op-amp library): circuits as netlists or graphs, with simulated performance as labels. None of them includes a layout.</li>
+        <li><b>Sizing</b> (AnalogGym, AMS-SizingBench, ACOB, threshold-spec suite, FALCON, ZeroSim, AICircuit, Opera): a fixed circuit, a testbench and targets to meet. These stop at the schematic; FALCON only adds an area formula.</li>
+        <li><b>Reading schematics and answering questions</b> (Masala-CHAI, AMSNet, SINA, AnalogRetriever, CircuitSense, AMSbench, MMCircuitEval, ChipVQA, MuaLLM): images, netlists and text, mostly without simulation.</li>
+        <li><b>LLM design tasks</b> (AnalogCoder, SAFTAC, Long-Horizon Analog Design Bench, NetlistBench, SGAnalog): a natural-language task, an answer netlist and a checking testbench, all at the schematic level.</li>
+        <li><b>Layout</b> (OSIRIS, THEIA, ParasGB, GLayout NL-to-layout, Trace-Repair-Verify, LayoutCopilot, AMS-IO-Bench, CTU placement): only OSIRIS and THEIA release layout files. Both are SKY130 only and are built from a handful of fixed circuit templates.</li>
+      </ul>
+    </section>
+    <section class="panel">
+      <h2>The gaps</h2>
+      <ul class="tight">
+        <li><b>Specification to verified layout is missing.</b> Of the 38, only OSIRIS releases layouts with post-layout simulation, and it has no performance targets to meet. Every benchmark with performance targets releases nothing beyond the schematic.</li>
+        <li><b>One process only.</b> None of the 38 offers two or more real processes that can actually be used; some name commercial nodes that are not provided. Every released layout dataset is SKY130-only.</li>
+        <li><b>Layout intent is rarely explicit or checkable.</b> Where layout intent exists, it is free text (GLayout NL-to-layout, LayoutCopilot), a list of matching pairs (OSIRIS) or abstract geometry rules (CTU placement). It is not an object that a tool can check against the circuit before drawing.</li>
+        <li><b>Little control over layout decisions.</b> Few datasets vary one layout decision at a time and measure what it does to area and performance. OSIRIS varies finger order and placement, but on 5 circuits with fixed sizes.</li>
+        <li><b>Quality of auto-extracted data.</b> Many netlist datasets are machine-extracted from images and never simulated. A 2026 study found that only 22% of Masala-CHAI netlists compile.</li>
+      </ul>
+    </section>
+    <section class="panel ours">
+      <h2>What this work adds</h2>
+      <ul class="tight">
+        <li><b>From frozen specs to verified layouts:</b> 547 entries, each with a sized netlist, a testbench and specs frozen before layout. All 6,159 layouts go through the official DRC deck, LVS, a size check, R+C extraction and post-layout simulation.</li>
+        <li><b>Three open processes:</b> SKY130, GF180MCU and IHP SG13G2, at 12 sizes per circuit.</li>
+        <li><b>Layout intent a tool can check:</b> the sharing plan lists finger order, source/drain sides, shared strips and gate straps. It is checked before drawing, and sharing is measured on the drawn shapes.</li>
+        <li><b>Controlled variation:</b> 4 fixed sharing modes on every entry; up to 64 plans built and checked for each of 56 tasks; 168 language-model sessions in which every proposal is checked.</li>
+        <li><b>Traceable sources:</b> every circuit maps to an AnalogGenie entry and a textbook page (17 matched exactly, 1 written from Gray et al.).</li>
+      </ul>
+    </section>
+    <section class="panel">
+      <h2>What is still open</h2>
+      <ul class="tight">
+        <li><b>Natural language:</b> we have no per-entry text description. AnalogCoder, AMS-SizingBench and Long-Horizon Analog Design Bench do. Adding written specs and intent per entry would make ours an LLM benchmark from text to layout.</li>
+        <li><b>Scale:</b> our benchmark has 18 topologies, against 3,350 in AnalogGenie. LDOs, bandgaps and comparators are missing.</li>
+        <li><b>More layout decisions:</b> placement, routing and matching constraints such as common-centroid. OSIRIS already records matching pairs.</li>
+        <li><b>Matching and corners:</b> no Monte Carlo or layout-dependent-effect analysis yet.</li>
+        <li><b>Release form:</b> our GDS is rebuilt from recorded plans rather than shipped. Rendered layout images (as in THEIA) would enable vision tasks.</li>
+        <li><b>Real silicon and expert layouts:</b> SGAnalog and ParasGB start from taped-out designs; we have no hand-drawn references.</li>
+      </ul>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>Screened but not in the table</h2>
+    <div class="screened" id="screened"></div>
+  </section>
+
+  <section class="panel">
+    <h2>How to read the table</h2>
+    <dl class="defs">
+      <dt>Design intent</dt><dd>What the designer wants, written down in the benchmark: numeric specifications, a natural-language requirement, or layout constraints. Partly means the goal is only implied: each entry's own simulated numbers, a single score, or a goal for only some items.</dd>
+      <dt>Netlist</dt><dd>The list of devices and connections. Partly means graphs, behavioural blocks or ideal parts instead of transistors, a netlist for only some items, or one that is not released.</dd>
+      <dt>Layout</dt><dd>The drawn shapes a factory manufactures (GDS). Partly means layout-related data without released geometry: constraints, parasitic values, placement problems, pictures, or layouts made in the paper but not released.</dd>
+      <dt>Testbench</dt><dd>A simulation set-up that measures performance. Partly means it is not released, needs a commercial simulator, or covers only some items.</dd>
+      <dt>Natural language</dt><dd>Human-readable text per entry (a task, question or description). Partly means template text or text for only some items.</dd>
+      <dt>Post-layout sim</dt><dd>Released layouts that are extracted and simulated. Partly means it was done in the paper but not released.</dd>
+      <dt>Processes</dt><dd>Yes means two or more real processes are usable. Partly means several are named but only one is open or usable.</dd>
+      <dt>Open source</dt><dd>Yes means public with a license. Partly means public without a license, partly released or gated. No means not released.</dd>
+    </dl>
+    <p class="note" style="margin-top:12px">Screened on 14 October 2026. Counts are quoted from the papers; when the released files differ, both numbers are given in the details. For 2026 papers whose full text is not yet public, only the abstract was checked.</p>
+  </section>
+</div>
+
+<script>
+const L = (l, t) => ({ l, t });
+const DATA = [
+// ---------------------------------------------------------------- EDA venues
+{ id: "analoggym", group: "EDA", name: "AnalogGym", venue: "ICCAD 2024 · invited paper", tasks: ["Sizing"],
+  title: "AnalogGym: An Open and Practical Testing Suite for Analog Circuit Synthesis",
+  task: "Choosing device sizes for a fixed circuit", n: "30 circuits in 5 types (amplifiers, LDOs, sensor front ends, references, PLL)",
+  entry: "A circuit with sizes left as variables, a schematic picture, testbenches and a script that reads out results",
+  intent: L(2, "Numeric targets per circuit (e.g. phase margin, output current), a figure of merit, process corners"),
+  netlist: L(2, "Transistor-level SPICE/Spectre, sizes left open; topologies from published designs"),
+  layout: L(0, "None (listed as future work)"),
+  tb: L(2, "Testbenches for Spectre, HSPICE and ngspice: gain, GBW, phase margin, slew, noise, PSRR, dropout"),
+  nl: L(0, "None"), postsim: L(0, "None"), procs: L(1, "SKY130 open; 180/130/22 nm blocks need commercial PDKs"),
+  use: "Fair comparison of sizing algorithms (Bayesian optimization, RL, evolutionary)",
+  prov: "Published amplifier designs plus the authors' own LDO, reference, front-end and PLL circuits",
+  pdk: "SKY130 (open) for amplifiers and LDOs; others commercial", open: L(2, "GitHub, BSD-3-Clause"),
+  links: [["Paper", "https://arxiv.org/abs/2409.08534"], ["Code", "https://github.com/CODA-Team/AnalogGym"], ["DOI", "https://doi.org/10.1145/3676536.3697117"]],
+  notes: "The abstract says 30 circuits; a table in the paper lists 32. Only the amplifiers and LDOs run with an open PDK and ngspice." },
+{ id: "opencircuit", group: "EDA", name: "OpenCircuit (TSO-Flow data)", venue: "ICCAD 2024", tasks: ["Topology generation"],
+  title: "TSO-Flow: A Topology Synthesis and Optimization Workflow for Operational Amplifiers with Invertible Graph Generative Model",
+  task: "Generating op-amp topologies (behavioural level)", n: "10,000 three-stage op-amps",
+  entry: "A behavioural netlist, its tunable parameters, the tuned values and the simulated gain, phase margin and GBW",
+  intent: L(1, "No targets; each circuit carries its own simulated performance and a score"),
+  netlist: L(1, "Behavioural Spectre netlists (transconductors, R, C), not transistors"),
+  layout: L(0, "None"), tb: L(1, "Spectre results included; re-simulation needs a commercial simulator"),
+  nl: L(0, "None"), postsim: L(0, "None"), procs: L(0, "None (behavioural)"),
+  use: "Training a graph generative model and a performance predictor", prov: "Randomly generated topologies, then simulated",
+  pdk: "None (behavioural models)", open: L(2, "GitHub, CC BY-NC-SA 4.0 (non-commercial)"),
+  links: [["Paper", "https://doi.org/10.1145/3676536.3676693"], ["Code", "https://github.com/JinglinHan/OpenCircuit"]],
+  notes: "The data is released as a side artifact (a footnote in the abstract), not as the main contribution." },
+{ id: "artisan", group: "EDA", name: "Artisan op-amp dataset", venue: "DAC 2024", tasks: ["LLM design tasks"],
+  title: "Artisan: Automated Operational Amplifier Design via Domain-specific Large Language Model",
+  task: "LLM that designs op-amps (topology and sizes)", n: "Not stated in the abstract",
+  entry: "Op-amp designs written as question-and-answer design steps (per the abstract)",
+  intent: L(1, "Design requirements turned into Q&A steps; format not public"), netlist: L(1, "Op-amp topologies; format not public"),
+  layout: L(0, "None"), tb: L(1, "Simulated in the paper; set-up not released"), nl: L(2, "Q&A design text used to fine-tune the model"),
+  postsim: L(0, "None"), procs: L(0, "Not stated"), use: "Fine-tuning a domain LLM for op-amp design", prov: "Not stated",
+  pdk: "Not stated", open: L(0, "Release promised; not found"),
+  links: [["Paper", "https://doi.org/10.1145/3649329.3655903"]],
+  notes: "The full text could not be accessed; everything beyond the abstract is unverified." },
+{ id: "opera", group: "EDA", name: "Opera", venue: "DAC 2025 · late-breaking result", tasks: ["Sizing"],
+  title: "Late Breaking Results: Opera: An Open and Efficient Platform for Data-driven Synthesis of Analog Circuits",
+  task: "Fast sizing benchmark using learned stand-ins for the simulator", n: "Several circuits (count not stated)",
+  entry: "A learned model of one circuit's performance, wrapped as a Gym-style environment",
+  intent: L(0, "Not stated in the 2-page paper"), netlist: L(0, "Not stated"), layout: L(0, "None"),
+  tb: L(1, "A learned surrogate replaces SPICE (up to 40x faster)"), nl: L(0, "None"), postsim: L(0, "None"), procs: L(0, "One open process (unnamed)"),
+  use: "Quick, standard comparison of data-driven sizing methods", prov: "Simulations in an open-source process", pdk: "An open process (not named)",
+  open: L(1, "Described as open; repository not found"), links: [["Paper", "https://doi.org/10.1109/DAC63849.2025.11132555"]],
+  notes: "Only a 2-page paper; circuits, process and code could not be verified." },
+{ id: "mmcircuiteval", group: "EDA", name: "MMCircuitEval", venue: "ICCAD 2025", tasks: ["Q&A / reasoning"],
+  title: "MMCircuitEval: A Comprehensive Multimodal Circuit-Focused Benchmark for Evaluating LLMs",
+  task: "Questions about circuits, with text and images; digital and analog", n: "3,614 Q&A pairs (about half analog)",
+  entry: "A question (sometimes with a figure), the answer and an explanation, tagged by design stage",
+  intent: L(1, "Some questions come from datasheet specifications; no design tasks"), netlist: L(1, "Only inside a few questions"),
+  layout: L(1, "Some questions show layout pictures; no layout files"), tb: L(0, "No simulation; answers scored by text similarity and an LLM judge"),
+  nl: L(2, "All items are Q&A from textbooks, question banks and datasheets, reviewed by experts"), postsim: L(0, "None"), procs: L(0, "Not applicable"),
+  use: "Testing LLMs and vision-LLMs across design stages", prov: "Textbooks, online question banks, datasheets, hand-written items",
+  pdk: "Not applicable", open: L(1, "GitHub + Hugging Face; no license stated"),
+  links: [["Paper", "https://arxiv.org/abs/2507.19525"], ["Code", "https://github.com/cure-lab/MMCircuitEval"], ["DOI", "https://doi.org/10.1109/ICCAD66269.2025.11240653"]],
+  notes: "The Hugging Face release groups sub-questions into 2,871 records." },
+{ id: "zerosim", group: "EDA", name: "ZeroSim corpus", venue: "ICCAD 2025", tasks: ["Sizing"],
+  title: "ZeroSim: Zero-Shot Analog Circuit Evaluation with Unified Transformer Embeddings",
+  task: "Predicting amplifier performance without running a simulator", n: "3.6 million sized circuits over 60 amplifier topologies",
+  entry: "A circuit graph with device sizes and 11 simulated performance numbers",
+  intent: L(1, "Performance labels only"), netlist: L(1, "SPICE circuits stored as graphs"), layout: L(0, "None"),
+  tb: L(1, "AnalogGym testbenches; not released"), nl: L(0, "None"), postsim: L(0, "None"), procs: L(0, "SKY130 only"),
+  use: "Training a transformer that predicts performance; RL sizing", prov: "16 AnalogGym topologies plus 44 collected or designed; random sizes, then simulated",
+  pdk: "SKY130", open: L(0, "Not released"),
+  links: [["Paper", "https://arxiv.org/abs/2511.07658"], ["DOI", "https://doi.org/10.1109/ICCAD66269.2025.11240890"]], notes: "" },
+{ id: "diffckt", group: "EDA", name: "DiffCkt amplifier dataset", venue: "ICCAD 2025", tasks: ["Topology generation"],
+  title: "DiffCkt: A Diffusion Model-Based Hybrid Neural Network Framework for Automatic Transistor-Level Generation of Analog Circuits",
+  task: "Generating sized transistor-level amplifiers from performance targets", n: "456,872 sized amplifiers (28 structures)",
+  entry: "A graph of devices with sizes, plus 13 simulated performance numbers",
+  intent: L(1, "Each circuit's own 13 metrics serve as the target when training"), netlist: L(1, "Graphs of sized transistor circuits; SPICE text not released"),
+  layout: L(0, "None"), tb: L(1, "Cadence Spectre results; set-up not released"), nl: L(0, "None"), postsim: L(0, "None"), procs: L(0, "TSMC 65 nm only"),
+  use: "Training a diffusion model to generate circuits that meet targets", prov: "Exhaustive structure combinations, random sizes, then simulated",
+  pdk: "TSMC 65 nm (commercial)", open: L(2, "GitHub, MIT (preview release)"),
+  links: [["Paper", "https://arxiv.org/abs/2507.00444"], ["Code", "https://github.com/CjLiu-NJU/DiffCkt"]], notes: "The paper says over 400k pairs; the repository has 456,872." },
+{ id: "analogretriever", group: "EDA", name: "AnalogRetriever triplets", venue: "ICCAD 2026", tasks: ["Schematic / netlist reading"],
+  title: "AnalogRetriever: Learning Cross-Modal Representations for Analog Circuit Retrieval",
+  task: "Finding a circuit by its picture, netlist or description", n: "6,354 triplets (1,000 held out for testing)",
+  entry: "A schematic image, a SPICE netlist that compiles, and a one-sentence description",
+  intent: L(1, "A one-sentence functional description only"), netlist: L(2, "Transistor-level SPICE, repaired until it compiles and passes a DC check"),
+  layout: L(0, "None"), tb: L(1, "Only a compile and DC check"), nl: L(2, "Descriptions rewritten by GPT-5.4 from the repaired netlists"),
+  postsim: L(0, "None"), procs: L(0, "Not stated"), use: "Cross-modal search; retrieval inside LLM design agents",
+  prov: "Textbook schematics from Masala-CHAI, repaired with an LLM + ngspice loop", pdk: "Not stated", open: L(0, "Not yet released"),
+  links: [["Paper", "https://arxiv.org/abs/2604.23195"]], notes: "Reports that only 22.0% of the released Masala-CHAI netlists compile." },
+{ id: "parasgb", group: "EDA", name: "ParasGB", venue: "ICCAD 2026", tasks: ["Parasitics", "Layout"],
+  title: "ParasGB: A Graph Benchmark Suite for Parasitic Estimation on AMS Circuits",
+  task: "Predicting wire resistance and capacitance before layout", n: "20 analog circuits + 6 SRAM designs",
+  entry: "A circuit graph with device sizes, and the parasitic values extracted from the real layout",
+  intent: L(0, "None"), netlist: L(1, "Circuit graphs with sizes; raw SPICE not released"),
+  layout: L(1, "Labels come from hand-drawn, DRC/LVS-clean layouts; geometry not released"), tb: L(0, "No circuit simulation"),
+  nl: L(0, "None"), postsim: L(0, "Extraction only, no simulation"), procs: L(0, "Analog part in one 180 nm BCD process"),
+  use: "Comparing graph neural networks for early parasitic estimation", prov: "Tape-out-proven designs (LVDS, bandgap, op-amp, LDO; SRAM macros)",
+  pdk: "180 nm BCD (foundry unnamed); TSMC 28 nm for SRAM", open: L(2, "GitHub + Hugging Face, MIT"),
+  links: [["Paper", "https://arxiv.org/abs/2607.23225"], ["Code", "https://github.com/ShenShan123/ParasGB"]], notes: "" },
+{ id: "acob", group: "EDA", name: "ACOB", venue: "ASP-DAC 2024 · invited paper", tasks: ["Sizing"],
+  title: "A Study on Exploring and Exploiting the High-dimensional Design Space for Analog Circuit Design Automation",
+  task: "High-dimensional sizing optimization", n: "3 circuits: oscillator (14 variables), op-amp (36), PLL (77)",
+  entry: "A SPICE testbench, the subcircuits, the list of design variables and a scoring script",
+  intent: L(2, "Spec ranges (min/typical/max) per circuit, combined into one weighted score"), netlist: L(2, "Transistor-level SPICE with sizes as variables (the PLL is mixed-signal)"),
+  layout: L(0, "None"), tb: L(2, "One transient SPICE run per circuit, with 5 process corners"), nl: L(0, "None"), postsim: L(0, "None"), procs: L(0, "Generic 3.3 V models"),
+  use: "Comparing optimizers from low to high dimension", prov: "IEEE P2427 / ITC 2017 AMS benchmark circuits from industry, repackaged",
+  pdk: "Generic 3.3 V models from the ITC'17 benchmark", open: L(1, "GitHub, no license file"),
+  links: [["Paper", "https://doi.org/10.1109/ASP-DAC58780.2024.10473920"], ["Slides", "https://www.aspdac.com/aspdac2024/archive/pdf/6E-3.pdf"], ["Code", "https://github.com/Quizas605/ACOB-Analog-Circuit-Optimization-Benchmark"]],
+  notes: "The paper is paywalled; the repository was matched to it through the conference slides." },
+{ id: "date24lib", group: "EDA", name: "Op-amp topology library", venue: "DATE 2024", tasks: ["Topology generation", "Sizing"],
+  title: "A Data-Driven Analog Circuit Synthesizer with Automatic Topology Selection and Sizing",
+  task: "Picking an op-amp topology and its sizes for a given spec", n: "About 360 topologies and over 540,000 simulated points",
+  entry: "A topology built from modules, sized designs and 14 simulated metrics",
+  intent: L(2, "Queries: an objective plus constraints over 14 metrics"), netlist: L(2, "Transistor-level, generated by scripts (not released)"),
+  layout: L(0, "None"), tb: L(1, "Cadence simulation; not released"), nl: L(0, "None"), postsim: L(0, "None"), procs: L(0, "FreePDK45 only"),
+  use: "Ranking topologies for unseen specs, then re-sizing", prov: "Rule-based enumeration of modules, expert curation, optimizer-driven simulation",
+  pdk: "FreePDK45", open: L(0, "Not released"),
+  links: [["Paper", "https://past.date-conference.com/proceedings-archive/2024/DATA/444_pdf_upload.pdf"], ["DOI", "https://doi.org/10.23919/DATE58400.2024.10546840"]], notes: "The dataset has no name in the paper." },
+{ id: "chipvqa", group: "EDA", name: "ChipVQA", venue: "DATE 2025 · focus session", tasks: ["Q&A / reasoning"],
+  title: "ChipVQA: Benchmarking Visual Language Models for Chip Design",
+  task: "Visual questions on chip design; analog is one of five subjects", n: "142 questions (public part: 75, of which 44 analog)",
+  entry: "An image (schematic, diagram or layout), a question, options and the answer",
+  intent: L(0, "None"), netlist: L(0, "Schematics only as pictures"), layout: L(1, "16 layout pictures; no layout files"), tb: L(0, "None"),
+  nl: L(2, "Questions and answers written by chip-design experts"), postsim: L(0, "None"), procs: L(0, "Not applicable"),
+  use: "Testing vision-language models on chip-design knowledge", prov: "Written by NVIDIA chip-design experts", pdk: "Not applicable",
+  open: L(1, "Partial release, CC BY-NC-SA 4.0; full set awaits approval"),
+  links: [["Paper", "https://doi.org/10.23919/DATE64628.2025.10992791"], ["Code", "https://github.com/phdyang007/chipvqa"]], notes: "" },
+{ id: "muallm", group: "EDA", name: "RAG-250 and Reas-100", venue: "ASP-DAC 2026", tasks: ["Q&A / reasoning"],
+  title: "MuaLLM: A Multimodal Large Language Model Agent for Circuit Design Assistance with Hybrid Contextual Retrieval-Augmented Generation",
+  task: "Question answering and multi-step reasoning over analog research papers", n: "250 retrieval questions + 100 reasoning questions",
+  entry: "A question taken from papers, with an expert-checked answer",
+  intent: L(1, "Some reasoning questions state targets in words (e.g. a 50 nW bandgap)"), netlist: L(0, "None"), layout: L(0, "None"),
+  tb: L(0, "Answers compared with expert answers"), nl: L(2, "Human-curated questions and answers"), postsim: L(0, "None"), procs: L(0, "Not applicable"),
+  use: "Evaluating literature-grounded design assistants", prov: "Published papers on bandgap references and oscillators", pdk: "Not applicable",
+  open: L(1, "Code is MIT; the datasets could not be found in it"),
+  links: [["Paper", "https://arxiv.org/abs/2508.08137"], ["Code", "https://github.com/medal-ece/MuaLLM"]], notes: "" },
+{ id: "motif", group: "EDA", name: "On-chip transformer datasets", venue: "ASP-DAC 2026", tasks: ["RF"],
+  title: "MOTIF-RF: Multi-template On-chip Transformer Synthesis Incorporating Frequency-domain Self-transfer Learning for RFIC Design Automation",
+  task: "Predicting how an RF transformer behaves from its geometry; inverse design", n: "4 datasets, 31,000 EM-simulated geometries",
+  entry: "Transformer geometry parameters and the simulated 4-port S-parameters",
+  intent: L(1, "Only in the inverse-design task (matching targets), not stored per entry"), netlist: L(0, "None"),
+  layout: L(1, "Parametric geometries on a 22 nm metal stack; no GDS released"), tb: L(1, "Cadence EMX electromagnetic simulation; not released"),
+  nl: L(0, "None"), postsim: L(0, "None"), procs: L(0, "GF 22FDX only"), use: "Comparing surrogate models; inverse design",
+  prov: "Parameter sweeps plus EM simulation", pdk: "GlobalFoundries 22FDX", open: L(0, "Not released"),
+  links: [["Paper", "https://arxiv.org/abs/2511.21970"]], notes: "Borderline scope: a passive RF component rather than a circuit." },
+{ id: "sina", group: "EDA", name: "SINA schematic set", venue: "DATE 2026 · short paper", tasks: ["Schematic / netlist reading"],
+  title: "SINA: A Circuit Schematic Image-to-Netlist Generator using Artificial Intelligence",
+  task: "Turning schematic images into SPICE netlists", n: "Over 700 annotated schematics; tests on 75 and 40 schematics",
+  entry: "A schematic image with component boxes; reference netlists for the tests",
+  intent: L(0, "None"), netlist: L(1, "Component-level SPICE as reference, not ready to simulate"), layout: L(0, "None"),
+  tb: L(0, "Scored by detection accuracy and netlist correctness"), nl: L(0, "None"), postsim: L(0, "None"), procs: L(0, "Not applicable"),
+  use: "Building netlist datasets from papers and textbooks", prov: "Research papers, scanned textbooks, hand drawings", pdk: "Not applicable",
+  open: L(2, "GitHub, MIT (662 annotated images public)"),
+  links: [["Paper", "https://arxiv.org/abs/2601.22114"], ["Code", "https://github.com/medal-ece/SINA"]], notes: "The 75- and 40-schematic test sets are not in the public repository." },
+// ---------------------------------------------------------------- ML venues
+{ id: "ocb", group: "ML", name: "Open Circuit Benchmark (OCB)", venue: "ICLR 2023", tasks: ["Topology generation"],
+  title: "CktGNN: Circuit Graph Neural Network for Electronic Design Automation",
+  task: "Op-amp topology generation and performance prediction with graph models", n: "10,000 op-amps (plus 50,000 for search)",
+  entry: "A circuit graph with component values and simulated gain, phase margin, bandwidth and a score",
+  intent: L(1, "Performance labels and a score to maximize; no targets"), netlist: L(1, "Graphs of behavioural blocks (gm, R, C), not transistors"),
+  layout: L(0, "None"), tb: L(1, "A Cadence Spectre script in the repository (commercial)"), nl: L(0, "None"), postsim: L(0, "None"), procs: L(0, "None (behavioural)"),
+  use: "Training graph encoders and generators; Bayesian optimization of the score", prov: "Random 2- and 3-stage op-amps from 24 building blocks, then simulated",
+  pdk: "None (behavioural models)", open: L(2, "GitHub, MIT"),
+  links: [["Paper", "https://openreview.net/forum?id=NE2911Kq1sp"], ["Code", "https://github.com/zehao-dong/CktGNN"]],
+  notes: "Reused by later work (DIGGED, ICML 2025; CktGen)." },
+{ id: "krylov", group: "ML", name: "Threshold-spec sizing suite", venue: "ICML 2023", tasks: ["Sizing", "RF"],
+  title: "Learning to Design Analog Circuits to Meet Threshold Specifications",
+  task: "Learning to go from specs to device sizes", n: "7 circuits, 616 to 4,096 simulated points each",
+  entry: "A parameter vector and its 3 simulated metrics",
+  intent: L(2, "Threshold specs ('gain at least X'), generated from the simulated metrics"), netlist: L(2, "Hand-written transistor-level ngspice netlists (amplifiers, LNA, PA, mixer, VCO)"),
+  layout: L(0, "None"), tb: L(2, "Analyses inside the netlists (AC, S-parameters, transient)"), nl: L(0, "None"), postsim: L(0, "None"), procs: L(0, "PTM 45 nm predictive models"),
+  use: "Comparing spec-to-size models; data efficiency", prov: "Textbook topologies chosen by the authors; grid sweeps simulated with ngspice",
+  pdk: "PTM 45 nm predictive models", open: L(1, "GitHub, no license; data must be regenerated"),
+  links: [["Paper", "https://proceedings.mlr.press/v202/krylov23a.html"], ["Code", "https://github.com/indylab/Circuit-Synthesis"]], notes: "" },
+{ id: "lamagic", group: "ML", name: "LaMAGIC power-converter dataset", venue: "ICML 2024", tasks: ["Topology generation"],
+  title: "LaMAGIC: Language-Model-based Topology Generation for Analog Integrated Circuits",
+  task: "Generating power-converter topologies from target specs", n: "About 132,000 circuits with 3–5 parts (+62,000 with 6 parts)",
+  entry: "A converter topology and duty cycle, with its simulated voltage ratio and efficiency",
+  intent: L(1, "Targets are the circuit's own simulated voltage ratio and efficiency"), netlist: L(1, "Graphs of ideal switches, L and C, not transistors"),
+  layout: L(0, "None"), tb: L(2, "ngspice simulation in the released code"), nl: L(1, "Template instructions generated by script"), postsim: L(0, "None"), procs: L(0, "None (ideal parts)"),
+  use: "Fine-tuning language models for spec-to-topology generation", prov: "Randomly enumerated topologies, simulated at 5 duty cycles",
+  pdk: "None (ideal components)", open: L(1, "Hugging Face + GitHub; no license declared"),
+  links: [["Paper", "https://proceedings.mlr.press/v235/chang24c.html"], ["Data", "https://huggingface.co/datasets/turtleben/LaMAGIC-dataset"], ["Code", "https://github.com/turtleben/LaMAGIC"]],
+  notes: "Reused unchanged by LaMAGIC2 (ICML 2025) and the TODAES 2026 journal version." },
+{ id: "analoggenie", group: "ML", name: "AnalogGenie dataset", venue: "ICLR 2025 · spotlight", tasks: ["Topology generation"],
+  title: "AnalogGenie: A Generative Engine for Automatic Discovery of Analog Circuit Topologies",
+  task: "Discovering new analog circuit topologies with a generative model", n: "3,350 topologies in 11 types (op-amps, LDOs, bandgaps, VCOs, …)",
+  entry: "An unsized netlist, its pin list, the book or paper figure, a redrawn schematic and the page reference",
+  intent: L(0, "None; only the circuit type"), netlist: L(2, "Transistor-level netlists without sizes"), layout: L(0, "None"),
+  tb: L(1, "Not released; the paper sizes some types with ngspice"), nl: L(0, "None"), postsim: L(0, "None"), procs: L(0, "None (generic devices)"),
+  use: "Pre-training a GPT on circuits; validity and novelty of generated circuits", prov: "Redrawn by hand from 6 textbooks and published papers",
+  pdk: "None (generic devices)", open: L(2, "GitHub + Hugging Face, MIT"),
+  links: [["Paper", "https://openreview.net/forum?id=jCPak79Kev"], ["Code", "https://github.com/xz-group/AnalogGenie"]],
+  notes: "Our 18 circuits come from here (17 matched exactly). Reused by AnalogGenie-Lite (ICML 2025)." },
+{ id: "falcon", group: "ML", name: "FALCON mm-wave dataset", venue: "NeurIPS 2025", tasks: ["Sizing", "RF"],
+  title: "FALCON: An ML Framework for Fully Automated Layout-Constrained Analog Circuit Design",
+  task: "Choosing a topology and sizing it for mm-wave specs, under a layout-area limit", n: "Over 1 million simulated designs over 20 topologies (LNA, mixer, PA, amplifier, VCO)",
+  entry: "Swept parameter values and up to 16 simulated metrics",
+  intent: L(2, "Target metric vector (success = within 20%) plus a layout-area limit"), netlist: L(2, "20 expert-designed transistor-level Spectre templates"),
+  layout: L(1, "Only a formula for area and parasitics; no layouts"), tb: L(1, "Cadence Spectre at 30 GHz; set-ups not released"), nl: L(0, "None"), postsim: L(0, "None"), procs: L(0, "One 45 nm process"),
+  use: "Topology classification, performance prediction, layout-aware inverse design", prov: "Expert topologies in Cadence; expert-chosen parameter sweeps",
+  pdk: "45 nm CMOS (PDK not named)", open: L(2, "GitHub, MIT"),
+  links: [["Paper", "https://openreview.net/forum?id=HUUQmnwUIx"], ["Code", "https://github.com/AsalMehradfar/FALCON"]], notes: "Successor of AICircuit (NeurIPS 2024 workshop)." },
+{ id: "osiris", group: "ML", name: "OSIRIS", venue: "ICLR 2026", tasks: ["Layout"],
+  title: "OSIRIS: Bridging Analog Circuit Design and Machine Learning with Scalable Dataset Generation",
+  task: "Many layout versions of the same circuits, for learning parasitic-aware layout", n: "87,100 layouts of 5 small circuits (OTAs and a filter)",
+  entry: "A GDS layout, its netlist, and simulation results before and after layout",
+  intent: L(1, "Matching pairs per circuit; goal = small area and small change after layout; no specs"), netlist: L(2, "Sized SPICE netlists (only finger order varies)"),
+  layout: L(2, "GDS per variant in SKY130; DRC by construction, LVS (Netgen), extraction (Magic)"), tb: L(2, "ngspice AC sweep before and after layout"),
+  nl: L(0, "None"), postsim: L(2, "Every layout extracted and simulated"), procs: L(0, "SKY130 only"),
+  use: "ML and RL layout optimization; parasitic prediction; fine-tuning an LLM for layouts", prov: "Generated by the authors' pipeline from 5 hand-made circuit templates",
+  pdk: "SKY130", open: L(2, "Hugging Face (Apache-2.0 and CC-BY-4.0 both stated)"),
+  links: [["Paper", "https://arxiv.org/abs/2601.19439"], ["Data", "https://huggingface.co/datasets/hardware-fab/osiris"], ["OpenReview", "https://openreview.net/forum?id=TIDaHgj0Yj"]],
+  notes: "The closest prior work on the layout side. Sizes and circuits are fixed; only finger order and placement vary; there are no performance targets." },
+{ id: "circuitsense", group: "ML", name: "CircuitSense", venue: "ICLR 2026", tasks: ["Q&A / reasoning"],
+  title: "CircuitSense: A Hierarchical MLLM Benchmark Bridging Visual Comprehension and Symbolic Reasoning in Engineering Design Process",
+  task: "Vision-language models reading schematics and deriving equations", n: "8,006 problems (2,986 curated + 5,020 generated)",
+  entry: "A circuit image, a question and the answer, sometimes with a step-by-step derivation",
+  intent: L(1, "Only 157 design items state specs; 20 give numeric SKY130 targets"), netlist: L(1, "Symbolic netlists for generated items; none for textbook items"),
+  layout: L(0, "None"), tb: L(1, "Only the 20 design items are simulated (ngspice + SKY130)"), nl: L(2, "An English question per item; textbook items checked by graduate students"),
+  postsim: L(0, "None"), procs: L(0, "Mostly none; SKY130 for 20 items"),
+  use: "Zero-shot testing of multimodal LLMs on circuit reasoning", prov: "Textbooks, courses, websites, AnalogGenie images, plus generated circuits",
+  pdk: "Mostly none; SKY130 for 20 items", open: L(2, "Hugging Face + GitHub, MIT"),
+  links: [["Paper", "https://openreview.net/forum?id=WEuJlEJmX8"], ["Code", "https://github.com/xz-group/CircuitSense"]], notes: "Broader than analog ICs (resistor networks, control block diagrams)." },
+{ id: "amssizing", group: "ML", name: "AMS-SizingBench", venue: "ICML 2026", tasks: ["Sizing", "LLM design tasks"],
+  title: "AutoSizer: Automatic Sizing of Analog and Mixed-Signal Circuits via Large Language Model (LLM) Agents",
+  task: "Sizing by LLM agents and optimizers with a fixed number of simulations", n: "24 circuits (5 easy, 6 medium, 13 hard)",
+  entry: "A SKY130 netlist template, an ngspice testbench, size choices, a one-sentence goal and spec thresholds",
+  intent: L(2, "Spec thresholds (e.g. gain > 18 dB, power < 65) plus a one-sentence goal"), netlist: L(2, "Transistor-level SKY130 SPICE, sizes left open"),
+  layout: L(0, "None in the benchmark"), tb: L(2, "ngspice with SKY130 models: AC, DC, transient, THD, PSRR"), nl: L(1, "One goal sentence per circuit"),
+  postsim: L(1, "Optional extraction flow for a few circuits; no layouts released"), procs: L(0, "SKY130 only"),
+  use: "Comparing sizing methods at 300 simulations each", prov: "Built by the authors; origin of the topologies not stated",
+  pdk: "SKY130", open: L(1, "GitHub, no license file ('under construction')"),
+  links: [["Paper", "https://proceedings.mlr.press/v306/yu26aw.html"], ["Code", "https://github.com/yuxi120407/AutoSizer"]], notes: "" },
+{ id: "saftac", group: "ML", name: "SAFTAC design tasks", venue: "NeurIPS 2026", tasks: ["LLM design tasks"],
+  title: "SAFTAC: Simulation-Augmented Fine-Tuning of Open-Source LLMs for Analog Circuit Design",
+  task: "Generating analog netlists from specs, revised with simulation feedback", n: "8,626 design tasks in 10 circuit types",
+  entry: "A text description, labelled ports, a load condition, target specs, a testbench and a reference netlist",
+  intent: L(2, "Target specs, load condition and port labels (format not public)"), netlist: L(2, "A reference netlist per task (form not public)"),
+  layout: L(0, "None"), tb: L(2, "A testbench per task (simulator not public)"), nl: L(2, "A text description per task (authorship not public)"),
+  postsim: L(0, "None"), procs: L(0, "Not stated"), use: "Fine-tuning open LLMs with supervised data and simulation-feedback RL",
+  prov: "Not public", pdk: "Not stated", open: L(0, "Not released yet"),
+  links: [["Paper", "https://openreview.net/forum?id=8VwAj1accS"]], notes: "Only the abstract is public; every detail is unverified." },
+{ id: "theia", group: "ML", name: "THEIA", venue: "NeurIPS 2026 · Evaluations & Datasets track", tasks: ["Layout", "Q&A / reasoning"],
+  title: "THEIA: A Multimodal Dataset and Benchmark for Vision-Language Analysis of Layout",
+  task: "Vision-language questions about analog layouts: which device, which circuit, how many", n: "30,031 layouts; 77,354 Q&A pairs over 5 tasks",
+  entry: "A GDS layout, its rendered picture, labels, and multiple-choice questions",
+  intent: L(0, "None"), netlist: L(0, "Not included"), layout: L(2, "GDS and images in SKY130; pass DRC and LVS"), tb: L(0, "None"),
+  nl: L(1, "Template questions generated from layout labels"), postsim: L(0, "No extraction or simulation"), procs: L(0, "SKY130 only"),
+  use: "Fine-tuning and testing vision-language models on layouts", prov: "Generated with the OSIRIS layout generator", pdk: "SKY130",
+  open: L(2, "Hugging Face, Apache-2.0"),
+  links: [["Paper", "https://arxiv.org/abs/2609.35035"], ["Data", "https://huggingface.co/datasets/hardware-fab/theia"]], notes: "Paper tables print 30,034 layouts; the dataset card lists 30,031." },
+// ---------------------------------------------------------------- other venues and workshops
+{ id: "analogcoder", group: "Other", name: "AnalogCoder", venue: "AAAI 2025", tasks: ["LLM design tasks"],
+  title: "AnalogCoder: Analog Circuit Design via Training-Free Code Generation",
+  task: "LLMs writing analog circuits as code from a one-line description", n: "24 design tasks",
+  entry: "A one-sentence task, required input/output nodes, a reference design and a checking script",
+  intent: L(2, "Function in words plus I/O nodes; pass/fail functional checks, no numeric specs"), netlist: L(2, "Sized reference designs as PySpice code (simple Level-1 models)"),
+  layout: L(0, "None"), tb: L(2, "PySpice + ngspice checks (DC, AC, transient)"), nl: L(2, "One sentence per task, written by the authors"),
+  postsim: L(0, "None"), procs: L(0, "None (generic models)"), use: "Pass@k of LLMs for analog circuit generation",
+  prov: "Textbook-style circuits chosen by the authors", pdk: "None (generic Level-1 models)", open: L(2, "GitHub, MIT"),
+  links: [["Paper", "https://arxiv.org/abs/2405.14918"], ["Code", "https://github.com/laiyao1/AnalogCoder"], ["AAAI", "https://ojs.aaai.org/index.php/AAAI/article/view/32016"]],
+  notes: "The most reused LLM benchmark: extended to 28 tasks by AnalogCoder-Pro (IEEE TCAD 2026) and 30 by AnalogAgent (KDD 2026)." },
+{ id: "masala", group: "Other", name: "Masala-CHAI", venue: "arXiv 2024 · preprint", tasks: ["Schematic / netlist reading"],
+  title: "Masala-CHAI: A Large-Scale SPICE Netlist Dataset for Analog Circuits by Harnessing AI",
+  task: "Textbook schematics turned into SPICE netlists with captions, for LLM training", n: "7,500 schematics from 10 textbooks (6,069 netlists released)",
+  entry: "A schematic image, a SPICE netlist and a caption",
+  intent: L(1, "Only a caption of what the circuit does"), netlist: L(1, "Unsized SPICE written by GPT-4o; not simulated"), layout: L(0, "None"),
+  tb: L(0, "None"), nl: L(2, "Captions generated by GPT-4o"), postsim: L(0, "None"), procs: L(0, "None"),
+  use: "Fine-tuning LLMs for text-to-SPICE", prov: "10 textbooks (Razavi, Gray et al., Sedra & Smith, …)", pdk: "None",
+  open: L(1, "Code without license; data download currently unavailable"),
+  links: [["Paper", "https://arxiv.org/abs/2411.14299"], ["Code", "https://github.com/jitendra-bhandari/Masala-CHAI"]],
+  notes: "A 2026 study (AnalogRetriever) found that only 22.0% of the released netlists compile and 11.4% pass a DC check." },
+{ id: "amsnet", group: "Other", name: "AMSNet", venue: "IEEE LAD 2024 · workshop", tasks: ["Schematic / netlist reading"],
+  title: "AMSNet: Netlist Dataset for AMS Circuits",
+  task: "Schematic images paired with netlists", n: "894 schematics in the paper (734 released)",
+  entry: "A schematic image, component and net annotations, and a SPICE netlist",
+  intent: L(0, "None"), netlist: L(1, "Unsized SPICE extracted from images, corrected by hand"), layout: L(0, "None"), tb: L(0, "None"),
+  nl: L(0, "None"), postsim: L(0, "None"), procs: L(0, "None"), use: "Training multimodal models to read schematics",
+  prov: "Textbooks and vendor application notes", pdk: "None", open: L(2, "GitHub, GPL-3.0"),
+  links: [["Paper", "https://arxiv.org/abs/2405.09045"], ["Code", "https://github.com/AMS-Net/ams-net.github.io"]],
+  notes: "Followed by AMSnet 2.0 (ICLAD 2025, 2,686 circuits, not released) and AMSnet-KG (TODAES 2025)." },
+{ id: "amsbench", group: "Other", name: "AMSbench", venue: "arXiv 2025 · ICLR 2026 submission, withdrawn", tasks: ["Q&A / reasoning", "LLM design tasks"],
+  title: "AMSbench: A Comprehensive Benchmark for Evaluating MLLM Capabilities in AMS Circuits",
+  task: "Reading schematics, analysing circuits and designing them, for multimodal LLMs", n: "About 8,000 questions + 68 design tasks",
+  entry: "An image and a question with the answer; design tasks give a description and I/O nodes",
+  intent: L(1, "Design tasks describe function in words; testbench tasks list target metrics"), netlist: L(1, "Reference netlists for a small transcription task only"),
+  layout: L(1, "52 questions about layout-rule figures; no layouts"), tb: L(1, "PySpice/ngspice for the design tasks only"),
+  nl: L(2, "Questions by rules and experts; answers by experts and LLMs"), postsim: L(0, "None"), procs: L(0, "Not stated"),
+  use: "Evaluating multimodal LLMs on AMS circuits", prov: "Papers, textbooks, datasheets; design tasks extend AnalogCoder", pdk: "Not stated",
+  open: L(1, "Hugging Face + GitHub; no license"),
+  links: [["Paper", "https://arxiv.org/abs/2505.24138"], ["Data", "https://huggingface.co/datasets/AMSbench/AMSbench"]], notes: "" },
+{ id: "aicircuit", group: "Other", name: "AICircuit", venue: "NeurIPS 2024 · ML4PS workshop", tasks: ["Sizing", "RF"],
+  title: "AICircuit: A Multi-Level Dataset and Benchmark for AI-Driven Analog Integrated Circuit Design",
+  task: "Performance prediction and inverse design for analog/RF blocks", n: "7 circuits + 2 transceiver systems (about 361,000 simulated points)",
+  entry: "Swept parameters and 3–9 simulated metrics",
+  intent: L(1, "Targets are the simulated metrics (inverse design)"), netlist: L(2, "Transistor-level netlists (Cadence)"), layout: L(0, "None"),
+  tb: L(1, "Cadence simulation; set-ups partly released"), nl: L(0, "None"), postsim: L(0, "None"), procs: L(0, "One 45 nm process"),
+  use: "Comparing ML models for analog/RF design", prov: "Expert-designed circuits; parameter sweeps", pdk: "45 nm CMOS",
+  open: L(2, "GitHub, MIT"), links: [["Paper", "https://arxiv.org/abs/2407.18272"], ["Code", "https://github.com/AvestimehrResearchGroup/AICircuit"]],
+  notes: "Predecessor of FALCON (NeurIPS 2025)." },
+{ id: "sganalog", group: "Other", name: "SGAnalog", venue: "NeurIPS 2026 · AI for Chip Design workshop", tasks: ["Schematic / netlist reading", "Sizing"],
+  title: "SGAnalog: An End-to-End Circuit Benchmark from Open-Source Silicon Tapeouts",
+  task: "Benchmark built from open-source Tiny Tapeout chips: transcription and sizing", n: "273 distinct circuits; 66 transcription + 17 sizing tasks",
+  entry: "A schematic (SVG/PNG), the matching netlist, and testbenches for the tasks",
+  intent: L(1, "Sizing tasks give targets"), netlist: L(2, "SPICE exported from the designers' own schematics"), layout: L(0, "None, although the sources were taped out"),
+  tb: L(2, "ngspice + SKY130 container"), nl: L(0, "Not stated"), postsim: L(0, "None"), procs: L(0, "SKY130 only"),
+  use: "Image-to-netlist transcription and sizing", prov: "Real designs from Tiny Tapeout repositories", pdk: "SKY130",
+  open: L(2, "GitHub, Apache-2.0"), links: [["Paper", "https://arxiv.org/abs/2610.03934"], ["Code", "https://github.com/Li-Yueting/SGAnalog"]], notes: "" },
+{ id: "netlistbench", group: "Other", name: "NetlistBench", venue: "MLCAD 2026", tasks: ["Schematic / netlist reading"],
+  title: "NetlistBench: Evaluating LLM Reliability in SPICE Netlist Recognition and Manipulation",
+  task: "Can LLMs read and edit SPICE netlists correctly?", n: "2,342 cases in 24 task types",
+  entry: "A netlist, an edit or query instruction, and the expected result",
+  intent: L(0, "Structural instructions only"), netlist: L(2, "SPICE from AnalogGenie (flat) and ALIGN (hierarchical)"), layout: L(0, "None"),
+  tb: L(0, "Exact structural check instead of simulation"), nl: L(1, "Instructions from templates"), postsim: L(0, "None"), procs: L(0, "None"),
+  use: "Reliability of LLMs on netlist operations", prov: "Derived from AnalogGenie and ALIGN netlists", pdk: "None",
+  open: L(2, "Code Apache-2.0, data CC-BY-4.0"), links: [["Paper", "https://arxiv.org/abs/2608.12197"], ["Code", "https://github.com/WoshiMayou/NetlistBench"]], notes: "" },
+{ id: "glayoutnl", group: "Other", name: "GLayout NL-to-layout set", venue: "MLCAD 2024", tasks: ["Layout", "LLM design tasks"],
+  title: "Human Language to Analog Layout Using GLayout Layout Automation Framework",
+  task: "LLMs turning a written request into gLayout layout code", n: "About 40 training prompts and 9 test prompts (repository)",
+  entry: "A natural-language prompt and the matching gLayout program (place, move, route)",
+  intent: L(2, "Written layout intent: device roles, interdigitation or common-centroid, placement"), netlist: L(1, "Only implicit in the layout code"),
+  layout: L(1, "Layout code that builds GDS; generated layouts not released"), tb: L(0, "None"), nl: L(2, "Prompts written by the authors"),
+  postsim: L(0, "None"), procs: L(1, "gLayout supports SKY130 and GF180; which was used is not stated"),
+  use: "Fine-tuning and retrieval for LLM layout-code generation", prov: "Written by the gLayout / OpenFASOC team", pdk: "SKY130, GF180 (through gLayout)",
+  open: L(2, "OpenFASOC, Apache-2.0"),
+  links: [["Paper", "https://doi.org/10.1145/3670474.3685971"], ["Code", "https://github.com/idea-fasoc/OpenFASOC/tree/main/openfasoc/generators/glayout/glayout/llm"]],
+  notes: "Same tool as ours; no verified layout dataset and no performance targets." },
+{ id: "trv", group: "Other", name: "Trace, Repair, Verify", venue: "NeurIPS 2026 · AI for Chip Design workshop", tasks: ["Layout", "LLM design tasks"],
+  title: "Trace, Repair, Verify: Agentic Analog Layout with gLayout",
+  task: "An LLM agent writes and repairs gLayout programs until DRC and LVS are clean", n: "Two prompt sets (from netlists and from human language); sizes not stated",
+  entry: "A prompt, the gLayout program and the checked layout",
+  intent: L(2, "Written requests and netlist-derived prompts"), netlist: L(1, "One prompt set is derived from netlists"),
+  layout: L(1, "Generated layouts are DRC/LVS-checked; not released"), tb: L(0, "Not stated"), nl: L(2, "A human-language prompt set"),
+  postsim: L(1, "Extraction used to rank results; not released"), procs: L(0, "Not stated"),
+  use: "Agentic generation and repair of clean layouts", prov: "The gLayout team", pdk: "Not stated", open: L(0, "No public data found"),
+  links: [["Paper", "https://openreview.net/forum?id=qPMCwUzmKf"]], notes: "Only the abstract could be checked." },
+{ id: "layoutcopilot", group: "Other", name: "LayoutCopilot requests", venue: "IEEE TCAD 2025", tasks: ["Layout", "LLM design tasks"],
+  title: "LayoutCopilot: An LLM-Powered Multiagent Collaborative Framework for Interactive Analog Layout Design",
+  task: "LLM agents turning a designer's request into layout-editing commands", n: "1,250 requests (1,134 valid) + 2,000 for request classification",
+  entry: "A written request and the expected command sequence",
+  intent: L(2, "Requests such as 'make these two symmetric' or 'improve matching'"), netlist: L(0, "Case studies only (proprietary)"),
+  layout: L(1, "Two case studies in TSMC 40/28 nm; layouts not released"), tb: L(1, "Post-layout simulation in the case studies; not released"),
+  nl: L(2, "Requests generated by GPT-3.5 and Claude-3"), postsim: L(1, "Case studies only"), procs: L(1, "Two commercial nodes, not released"),
+  use: "Evaluating request-to-command translation", prov: "LLM-generated requests; Peking University layout editor", pdk: "TSMC 40 nm, 28 nm",
+  open: L(0, "Not released"), links: [["Paper", "https://arxiv.org/abs/2406.18873"], ["DOI", "https://doi.org/10.1109/TCAD.2025.3529805"]], notes: "" },
+{ id: "amsio", group: "Other", name: "AMS-IO-Bench", venue: "AAAI 2026", tasks: ["Layout", "LLM design tasks"],
+  title: "AMS-IO-Bench and AMS-IO-Agent: Benchmarking and Structured Reasoning for Analog and Mixed-Signal Integrated Circuit Input/Output Design",
+  task: "LLM agents building chip I/O rings (pin plan to schematic and layout)", n: "30 cases from 10 tape-outs (repository: 60 prompts)",
+  entry: "A structured prompt: pads per side, order, signals, voltage domains, process",
+  intent: L(2, "Structured pin-planning intent (pad order, power domains, ring size)"), netlist: L(0, "Not released"),
+  layout: L(1, "Agents' layouts checked with Calibre DRC/LVS; no reference layouts released"), tb: L(0, "No simulation; DRC/LVS pass rate"),
+  nl: L(2, "Structured prompts written from real projects"), postsim: L(0, "None"), procs: L(1, "Commercial 28 and 180 nm, not provided"),
+  use: "Evaluating agents on sign-off-checked I/O ring assembly", prov: "I/O plans of 10 tape-outs over 5 years (Tsinghua)", pdk: "Commercial 28 nm and 180 nm",
+  open: L(1, "Prompts on GitHub, no license"),
+  links: [["Paper", "https://arxiv.org/abs/2512.21613"], ["Code", "https://github.com/Arcadia-1/AMS-IO-Bench"], ["AAAI", "https://ojs.aaai.org/index.php/AAAI/article/view/37134"]], notes: "" },
+{ id: "longhorizon", group: "Other", name: "Long-Horizon Analog Design Bench", venue: "arXiv 2026 · ICLR 2027 submission", tasks: ["LLM design tasks", "Sizing"],
+  title: "Long-Horizon Analog Design Bench: Benchmarking Agents on Hours-Long Analog and Mixed-Signal Circuit Design Tasks",
+  task: "Coding agents doing hours-long transistor-level designs to a spec", n: "50 tasks from 17 chip designers",
+  entry: "An electrical spec, starter files, a reference result and hidden test benches",
+  intent: L(2, "Numeric electrical specs (11 to 2,083 checks per task)"), netlist: L(2, "Agents produce transistor-level netlists; reference result per task"),
+  layout: L(0, "Out of scope"), tb: L(2, "Hidden ngspice benches on SKY130"), nl: L(2, "Task statements written by designers"),
+  postsim: L(0, "None"), procs: L(0, "SKY130 only"), use: "Full-spec pass rate of coding agents", prov: "Proposed by practising chip designers", pdk: "SKY130",
+  open: L(0, "Not public yet"), links: [["Paper", "https://arxiv.org/abs/2609.33356"]], notes: "" },
+{ id: "ctu", group: "Other", name: "CTU analog placement instances", venue: "Computers & Operations Research 2024", tasks: ["Layout"],
+  title: "Automated placement of analog integrated circuits using priority-based constructive heuristic",
+  task: "Device-level analog placement with symmetry and spacing rules", n: "260 placement problems (20 to 285 blocks)",
+  entry: "Rectangles with size options, minimum distances, nets, blockages and symmetry groups",
+  intent: L(2, "Geometric constraints: symmetry groups, spacing, blockages"), netlist: L(0, "Abstract weighted nets only"),
+  layout: L(1, "Placement problems only; no process, no GDS"), tb: L(0, "None"), nl: L(0, "None"), postsim: L(0, "None"), procs: L(0, "None"),
+  use: "Benchmarking placement algorithms", prov: "Synthetic, inspired by STMicroelectronics BCD designs", pdk: "None",
+  open: L(2, "Zenodo, CC-BY-4.0"), links: [["Paper", "https://arxiv.org/abs/2411.02406"], ["Data", "https://zenodo.org/records/13950743"]],
+  notes: "The 17 industrial instances from the paper are not released." },
+// ---------------------------------------------------------------- this work
+{ id: "ours", group: "Ours", name: "Textbook sharing benchmark (this work)", venue: "gLayout pull request #127 · 2026", tasks: ["Layout", "LLM design tasks"],
+  title: "Explicit diffusion and gate sharing in gLayout: a three-PDK textbook benchmark",
+  task: "Layout with an explicit, checkable sharing plan; choosing the best plan; LLM layout agents",
+  n: "547 entries from 648 requests (18 circuits × 3 processes × 12 sizes); 6,159 fully checked layouts",
+  entry: "A sized netlist, a per-finger LVS netlist, a testbench, frozen specs, the pre-layout simulation, and a reference layout that passes every check",
+  intent: L(2, "Frozen performance specs per entry, plus an explicit sharing plan (finger order, source/drain sides, shared strips, gate straps)"),
+  netlist: L(2, "Transistor-level SPICE, sized per process and size; topologies from AnalogGenie (17) and Gray et al. (1)"),
+  layout: L(2, "GDS from gLayout in 3 processes, rebuilt from the recorded plans (hash-checked); DRC, LVS, extraction"),
+  tb: L(2, "Generated ngspice testbench per entry: gain, unity-gain frequency, swing, phase margin, THD, copy error"),
+  nl: L(1, "Model interface text and task prompts; no per-entry description"),
+  postsim: L(2, "Every layout extracted (R+C) and simulated against the frozen specs"), procs: L(2, "SKY130, GF180MCU and IHP SG13G2"),
+  use: "Area gain and cost of sharing; choosing a plan within a check budget; layout plans written by language models",
+  prov: "Textbook topologies through AnalogGenie; sizes scaled from nominal points; specs frozen from pre-layout simulation; layouts generated and checked by us",
+  pdk: "SKY130, GF180MCU, IHP SG13G2 (all open)", open: L(2, "Public pull request to gLayout (MIT); not merged yet"),
+  links: [["Pull request", "https://github.com/ReaLLMASIC/gLayout/pull/127"], ["Benchmark folder", "https://github.com/DonaldLucy/gLayout/tree/textbook-sharing/benchmarks/textbook_sharing"]],
+  notes: "Every reported layout also passed a blinded visual review. The four fixed sharing modes run on every entry; 56 tasks have up to 64 plans each built and checked; 168 language-model sessions, every proposal checked." }
+];
+
+const SCREENED = [
+  ["AnalogCoder-Pro", "IEEE TCAD 2026", "Extends AnalogCoder to 28 tasks plus 12 sizing instructions; covered by the AnalogCoder row."],
+  ["LaMAGIC2 · AnalogGenie-Lite", "ICML 2025", "Reuse the LaMAGIC and AnalogGenie data unchanged."],
+  ["AUTOCIRCUIT-RL", "ICML 2025", "Power-converter netlists (10,000 per size) built internally; not released."],
+  ["DIGGED · AutoVSR · CktGen", "ICML 2025 · ICML 2026 · Engineering 2026", "Methods evaluated on existing data (OCB, CircuitSense)."],
+  ["AnalogVerifier", "ICML 2026", "Industrial circuits and datasheets; nothing released."],
+  ["GCX", "NeurIPS 2023", "Sizing method; its simulation data is not released."],
+  ["ADO-LLM · AnaFlow · PPAAS", "ICCAD 2024 · ICCAD 2025", "Sizing methods on 2–4 circuits; no benchmark contribution."],
+  ["SAGERoute 1 and 2 · AMBEATion", "DATE 2023 · DATE 2024", "Analog routing and back-end work on in-house or proprietary circuits."],
+  ["MAGICAL-based placement and routing", "DAC 2024 · TCAD 2025–2026", "TSMC 40 nm OTA and comparator layouts, not released."],
+  ["ALIGN-public examples", "Tool repository (since 2019)", "41 example circuits with layout constraint files; layouts come from running the tool."],
+  ["Image2Net · Netlistify · Circuit-Think", "ISEDA 2025 · MLCAD 2025 · AAAI 2026", "Schematic-image-to-netlist data (2,914 images; 100,000 synthetic; 3,100 pairs with 100 public)."],
+  ["AMSnet 2.0 · AMSnet-KG · AMSnet-q", "ICLAD 2025 · TODAES 2025 · arXiv 2026", "Follow-ups to AMSNet; not released or no release statement."],
+  ["CIRCUIT", "arXiv 2025 (ICLR 2025 submission, rejected)", "510 circuit-reasoning questions; not released."],
+  ["CircuitFormer", "arXiv 2026", "31,341 netlist and description pairs from 62 books; venue unknown."],
+  ["LEDRO · EEsizer · SPICEPilot · AnalogXpert", "ICLAD 2025 · TCAS-I 2026 · ICRC 2024 · ISEDA 2025", "Small evaluation suites inside method papers (22 op-amps × 4 FinFET nodes; 6 circuits; 60 circuits; 30 + 2,000 tasks)."],
+  ["HeaRT · KCLNet · EXPLORE", "ICLAD 2026 · AAAI 2026 · MLCAD 2026", "Structure labels, graph datasets and power-converter topologies; not layout or not released."],
+  ["Inspector", "ICLAD 2026", "Same SKY130 layouts as THEIA."],
+  ["AnalogMaster", "Expert Systems with Applications 2026", "15 circuits from image to SKY130 placement and routing; not released."],
+  ["LOADBench · AnaFlow-RF · AnaCLARA", "MLCAD 2026", "Only titles and authors are public so far."],
+  ["CircuitNet 2.0/3.0 · ChiPBench · CapBench", "ICLR 2024/2026 · NeurIPS 2025 · DAC 2026", "Digital design data, not analog."],
+  ["EEE-Bench and other exam-question sets", "CVPR 2025 and others", "General electrical-engineering exam questions, not IC design."],
+  ["ICCAD CAD Contest 2023–2026", "ICCAD", "No analog problem in these years."]
+];
+
+const COLS_FULL = [
+  ["task", "Task", "what it is for", "w-task"], ["n", "Size", "number of entries", "w-n"], ["entry", "One entry contains", "", "w-entry"],
+  ["intent", "Design intent", "how the goal is written", "w-int"], ["netlist", "Netlist", "form and source", "w-net"], ["layout", "Layout", "form, process, checks", "w-lay"],
+  ["tb", "Testbench", "simulator and metrics", "w-tb"], ["nl", "Natural language", "what text, who wrote it", "w-nl"], ["postsim", "Post-layout sim", "released layouts simulated?", "w-ps"],
+  ["procs", "Processes", "how many real PDKs", "w-pr"], ["use", "Used to evaluate", "", "w-use"], ["prov", "Where entries come from", "", "w-prov"], ["open", "Open source", "", "w-open"]
+];
+const COLS_QUICK = [["task", "Task", "", "w-task"], ["n", "Size", "", "w-n"], ["intent", "Intent", "", "ic"], ["netlist", "Netlist", "", "ic"], ["layout", "Layout", "", "ic"],
+  ["tb", "Testbench", "", "ic"], ["nl", "Text", "", "ic"], ["postsim", "Post-layout sim", "", "ic"], ["procs", "≥2 PDKs", "", "ic"], ["open", "Open", "", "ic"]];
+const LEVELED = new Set(["intent", "netlist", "layout", "tb", "nl", "postsim", "procs", "open"]);
+const GROUPS = [["all", "All"], ["EDA", "EDA venues"], ["ML", "ML venues"], ["Other", "Other venues"], ["Ours", "This work"]];
+const VIEWS = [["quick", "Quick view"], ["full", "Full details"]];
+let state = { view: "quick", group: "all", task: null, q: "", open: new Set() };
+try { const v = localStorage.getItem("abm-view"); if (v === "quick" || v === "full") state.view = v; } catch (e) {}
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const word = l => ["No", "Partly", "Yes"][l];
+
+function cell(key, v, quick) {
+  if (LEVELED.has(key) && v && typeof v === "object") {
+    if (quick) return `<i class="dot l${v.l}" role="img" aria-label="${word(v.l)}: ${esc(v.t)}" title="${word(v.l)}: ${esc(v.t)}"></i>`;
+    return `<div class="cell"><i class="dot l${v.l}" role="img" aria-label="${word(v.l)}"></i><span>${esc(v.t)}</span></div>`;
+  }
+  return `<span class="${key === "n" ? "num" : ""}">${esc(v)}</span>`;
+}
+
+function visible() {
+  const q = state.q.trim().toLowerCase();
+  return DATA.filter(d => (state.group === "all" || d.group === state.group) && (!state.task || d.tasks.includes(state.task))
+    && (!q || JSON.stringify(d).toLowerCase().includes(q)));
+}
+
+function render() {
+  const quick = state.view === "quick", cols = quick ? COLS_QUICK : COLS_FULL;
+  document.getElementById("thead").innerHTML = `<th class="name">Benchmark<small>venue · paper and code</small></th>`
+    + cols.map(([, t, s, w]) => `<th class="${w}">${t}${s ? `<small>${s}</small>` : ""}</th>`).join("");
+  const r = visible();
+  document.getElementById("count").textContent = `${r.length} of ${DATA.length} rows`;
+  const tb = document.getElementById("tbody");
+  if (!r.length) { tb.innerHTML = `<tr><td class="empty" colspan="${cols.length + 1}">No benchmark matches these filters. Clear a filter to see more.</td></tr>`; return; }
+  tb.innerHTML = r.map(d => {
+    const open = state.open.has(d.id);
+    const links = d.links.map(([t, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)} ↗</a>`).join("");
+    let row = `<tr class="${d.group === "Ours" ? "ours" : ""}"><td class="name"><b>${esc(d.name)}</b><span class="venue">${esc(d.venue)}</span>`
+      + `<div class="title">${esc(d.title)}</div><div class="plinks">${links}</div>`
+      + `<button type="button" class="rowbtn" data-id="${esc(d.id)}" aria-expanded="${open}">${open ? "Hide details" : "More details"}</button></td>`
+      + cols.map(([k, , , w]) => `<td class="${w === "ic" ? "ic" : ""}">${k === "task" && quick ? d.tasks.map(t => `<span class="tchip">${esc(t)}</span>`).join("") : cell(k, d[k], quick)}</td>`).join("") + `</tr>`;
+    if (open) {
+      const item = (h, t) => t ? `<div><h4>${h}</h4><p>${esc(t)}</p></div>` : "";
+      const lev = k => d[k] ? `${word(d[k].l)}. ${d[k].t}` : "";
+      row += `<tr class="detail"><td colspan="${cols.length + 1}"><div class="dgrid">`
+        + item("Task", d.task) + item("Size", d.n) + item("One entry contains", d.entry) + item("Design intent", lev("intent"))
+        + item("Netlist", lev("netlist")) + item("Layout", lev("layout")) + item("Testbench", lev("tb")) + item("Natural language", lev("nl"))
+        + item("Post-layout simulation", lev("postsim")) + item("Processes", lev("procs")) + item("Used to evaluate", d.use)
+        + item("Where entries come from", d.prov) + item("Process / PDK", d.pdk) + item("Open source", lev("open")) + item("Notes", d.notes)
+        + `<div><h4>Links</h4><p>${d.links.map(([t, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}: ${esc(u)}</a>`).join("<br>")}</p></div>`
+        + `</div></td></tr>`;
+    }
+    return row;
+  }).join("");
+}
+
+function coverage() {
+  const items = [["netlist", "Netlist"], ["tb", "Testbench / simulation"], ["intent", "Design intent written down"], ["nl", "Natural-language text"],
+    ["layout", "Layout files (GDS) released"], ["postsim", "Released layouts simulated after extraction"], ["procs", "Two or more real processes"], ["open", "Open source with a license"]];
+  const others = DATA.filter(d => d.group !== "Ours"), ours = DATA.find(d => d.group === "Ours"), n = others.length;
+  document.getElementById("cover").innerHTML = items.map(([k, label]) => {
+    const f = others.filter(d => d[k].l === 2).length, p = others.filter(d => d[k].l === 1).length, o = ours[k].l;
+    return `<div class="cov"><div class="cov-top"><b>${label}</b><span>${f} yes · ${p} partly · of ${n}</span></div>`
+      + `<div class="bar" role="img" aria-label="${label}: ${f} yes, ${p} partly, out of ${n}"><i class="f" style="width:${100 * f / n}%"></i><i class="p" style="width:${100 * p / n}%"></i></div>`
+      + `<small>This work: <b>${word(o).toLowerCase()}</b></small></div>`;
+  }).join("");
+}
+
+function controls() {
+  document.getElementById("views").innerHTML = VIEWS.map(([k, t]) => `<button type="button" data-v="${k}" aria-pressed="${state.view === k}">${t}</button>`).join("");
+  document.getElementById("seg").innerHTML = GROUPS.map(([k, t]) => `<button type="button" data-g="${k}" aria-pressed="${state.group === k}">${t}</button>`).join("");
+  const tasks = [...new Set(DATA.flatMap(d => d.tasks))];
+  document.getElementById("chips").innerHTML = tasks.map(t => `<button type="button" class="chip" data-t="${esc(t)}" aria-pressed="${state.task === t}">${esc(t)}</button>`).join("");
+}
+
+document.addEventListener("click", e => {
+  const v = e.target.closest("[data-v]"), g = e.target.closest("[data-g]"), t = e.target.closest("[data-t]"), b = e.target.closest(".rowbtn");
+  if (v) { state.view = v.dataset.v; try { localStorage.setItem("abm-view", state.view); } catch (err) {} controls(); render(); }
+  if (g) { state.group = g.dataset.g; controls(); render(); }
+  if (t) { state.task = state.task === t.dataset.t ? null : t.dataset.t; controls(); render(); }
+  if (b) { const id = b.dataset.id; state.open.has(id) ? state.open.delete(id) : state.open.add(id); render(); }
+});
+document.getElementById("q").addEventListener("input", e => { state.q = e.target.value; render(); });
+document.getElementById("screened").innerHTML = SCREENED.map(([a, b, c]) => `<p><b>${esc(a)}</b> <span>(${esc(b)})</span> — ${esc(c)}</p>`).join("");
+coverage(); controls(); render();
+</script>
+</body>
+</html>
